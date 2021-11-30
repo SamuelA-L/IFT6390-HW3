@@ -23,8 +23,26 @@ class NetworkConfiguration(NamedTuple):
 # Pytorch preliminaries
 def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float:
     # TODO WRITE CODE HERE
-    pass
 
+    tensor_array = np.squeeze(np.array(tensor_list))
+    # output = np.array([function(tensor) for tensor in tensor_list])
+
+    print(tensor_array)
+
+    # for tensor in tensor_list:
+    #     loss = output-tensor_array
+    #     grad = loss.grad
+
+
+x = torch.tensor([
+                 [-2,4,-1],
+                 [4,1,-1],
+                 [1, 6, -1],
+                 [2, 4, -1],
+                 [6, 2, -1],
+                          ])
+
+gradient_norm(None, x.tolist())
 
 def jacobian_norm(function: Callable, input_tensor: torch.Tensor) -> float:
     # TODO WRITE CODE HERE
@@ -119,8 +137,13 @@ class Trainer:
         pass
 
     def one_hot(self, y: torch.Tensor) -> torch.Tensor:
-        # TODO WRITE CODE HERE
-        pass
+        one_hot = np.zeros((len(y), self.n_classes), dtype=int)
+        y_list = y.tolist()
+        print(y_list)
+        for i, label in enumerate(y_list):
+            one_hot[i][int(label[0])] = 1
+
+        return one_hot
 
     def compute_loss_and_accuracy(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
         # TODO WRITE CODE HERE
