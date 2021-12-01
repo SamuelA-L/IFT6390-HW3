@@ -32,17 +32,8 @@ def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float
     # for tensor in tensor_list:
     #     loss = output-tensor_array
     #     grad = loss.grad
+    return 1.1
 
-
-x = torch.tensor([
-                 [-2,4,-1],
-                 [4,1,-1],
-                 [1, 6, -1],
-                 [2, 4, -1],
-                 [6, 2, -1],
-                          ])
-
-gradient_norm(None, x.tolist())
 
 def jacobian_norm(function: Callable, input_tensor: torch.Tensor) -> float:
     # TODO WRITE CODE HERE
@@ -113,8 +104,24 @@ class Trainer:
         :param activation: The activation function to use.
         :return: A PyTorch model implementing the MLP.
         """
-        # TODO write code here
-        pass
+        layer_dim = list(net_config.dense_hiddens)
+        mlp_list = [torch.nn.Flatten(),
+                    torch.nn.Linear(input_dim, layer_dim[0]),
+                    activation
+                    ]
+
+        layer_dim.append(n_classes)
+        for i, n in enumerate(layer_dim):
+            if i != len(layer_dim)-1:
+                mlp_list.append(torch.nn.Linear(n, layer_dim[i+1]))
+                mlp_list.append(activation)
+            print(n)
+
+        mlp_list.append(torch.nn.Softmax(n_classes))
+        mlp = torch.nn.Sequential(*mlp_list)
+
+        return mlp
+
 
     @staticmethod
     def create_cnn(in_channels: int, net_config: NetworkConfiguration, n_classes: int,
@@ -133,8 +140,15 @@ class Trainer:
 
     @staticmethod
     def create_activation_function(activation_str: str) -> torch.nn.Module:
-        # TODO WRITE CODE HERE
-        pass
+        layer = None
+        if activation_str == "relu" :
+            layer = torch.nn.ReLU()
+        elif activation_str == "tanh":
+            layer = torch.nn.Tanh()
+        elif activation_str == "sigmoid":
+            layer = torch.nn.Sigmoid()
+
+        return layer
 
     def one_hot(self, y: torch.Tensor) -> torch.Tensor:
         one_hot = np.zeros((len(y), self.n_classes), dtype=int)
@@ -143,7 +157,7 @@ class Trainer:
         for i, label in enumerate(y_list):
             one_hot[i][int(label[0])] = 1
 
-        return one_hot
+        return torch.tensor(one_hot)
 
     def compute_loss_and_accuracy(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
         # TODO WRITE CODE HERE
@@ -219,3 +233,8 @@ class Trainer:
 
         # TODO CODE HERE
         pass
+
+# tr = Trainer(normalization = False)
+# nc = NetworkConfiguration()
+#
+# tr.create_mlp(3, nc, 2, torch.nn.ReLU())
