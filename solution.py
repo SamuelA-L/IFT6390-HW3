@@ -190,9 +190,8 @@ class Trainer:
     def one_hot(self, y: torch.Tensor) -> torch.Tensor:
         one_hot = np.zeros((len(y), self.n_classes), dtype=int)
         y_list = y.tolist()
-        print(y_list)
         for i, label in enumerate(y_list):
-            one_hot[i][int(label[0])] = 1
+            one_hot[i, int(label)] = 1
 
         return torch.tensor(one_hot)
 
@@ -287,24 +286,21 @@ class Trainer:
 #                        [3, 4],
 #                        [5, 6]
 #                        ])
-#
-tr = Trainer(normalization = True)
-nc = NetworkConfiguration()
-#
-#
-# test = ((tensor,tensor), (tensor,tensor), (tensor, tensor))
-# res = tr.normalize(*test)
-# print(res[0][0])
+
+# tr = Trainer(normalization = True)
+# nc = NetworkConfiguration()
 
 
-
-# def norm_single(tensor):
-#     array = np.squeeze(np.array(tensor.tolist()))
-#     means = np.mean(array, axis=0)
-#     stds = np.std(array, axis=0)
-#     array = (array-means) / stds
+# def one_hot(y: torch.Tensor) -> torch.Tensor:
+#     one_hot = np.zeros((len(y), 5), dtype=int)
+#     y_list = y.tolist()
+#     print(y_list)
+#     for i, label in enumerate(y_list):
+#         one_hot[i, int(label)] = 1
 #
-#     return torch.tensor(array)
+#     return torch.tensor(one_hot)
 #
-# t = norm_single(tensor)
-# print('w')
+# tensor = torch.tensor([1,0,3,4])
+#
+# t = one_hot(tensor)
+# print('')
