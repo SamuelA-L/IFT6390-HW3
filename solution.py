@@ -255,8 +255,27 @@ class Trainer:
                   test: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[Tuple[torch.Tensor, torch.Tensor],
                                                                     Tuple[torch.Tensor, torch.Tensor],
                                                                     Tuple[torch.Tensor, torch.Tensor]]:
-        # TODO WRITE CODE HERE
-        pass
+
+        def norm_single(tensor):
+            array = np.squeeze(np.array(tensor.tolist()))
+            means = np.mean(array, axis=0)
+            stds = np.std(array, axis=0)
+            array = (array - means) / stds
+            tensor = torch.tensor(array)
+
+            return tensor
+
+        return (
+            (train[0], train[1]),
+            (valid[0], valid[1]),
+            (test[0], test[1])
+         )
+
+        # return (
+        #     (norm_single(train[0]), train[1]),
+        #     (norm_single(valid[0]), valid[1]),
+        #     (norm_single(test[0]), test[1])
+        #  )
 
     def test_equivariance(self):
         from functools import partial
@@ -274,7 +293,28 @@ class Trainer:
         # TODO CODE HERE
         pass
 
-# tr = Trainer(normalization = False)
-# nc = NetworkConfiguration()
+tensor = torch.tensor([[1, 2],
+                       [3, 4],
+                       [5, 6]
+                       ])
+
+tr = Trainer(normalization = False)
+nc = NetworkConfiguration()
+
+
+test = ((tensor,tensor), (tensor,tensor), (tensor, tensor))
+res = tr.normalize(*test)
+print(res[0][0])
+
+
+
+# def norm_single(tensor):
+#     array = np.squeeze(np.array(tensor.tolist()))
+#     means = np.mean(array, axis=0)
+#     stds = np.std(array, axis=0)
+#     array = (array-means) / stds
 #
-# tr.create_cnn(3, nc, 2, torch.nn.ReLU())
+#     return torch.tensor(array)
+#
+# t = norm_single(tensor)
+# print('w')
