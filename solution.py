@@ -119,8 +119,6 @@ class Trainer:
         mlp_list.append(torch.nn.Softmax(dim=1))
         mlp = torch.nn.Sequential(*mlp_list)
 
-        print(mlp)
-
         return mlp
 
 
@@ -174,7 +172,6 @@ class Trainer:
         cnn_list.append(torch.nn.Softmax(dim=1))
 
         cnn = torch.nn.Sequential(*cnn_list)
-        print(cnn)
 
         return cnn
 
@@ -256,26 +253,19 @@ class Trainer:
                                                                     Tuple[torch.Tensor, torch.Tensor],
                                                                     Tuple[torch.Tensor, torch.Tensor]]:
 
-        def norm_single(tensor):
-            array = np.squeeze(np.array(tensor.tolist()))
-            means = np.mean(array, axis=0)
-            stds = np.std(array, axis=0)
-            array = (array - means) / stds
-            tensor = torch.tensor(array)
+        mean = train[0].mean(axis=0)
+        std = train[0].std(axis=0)
+        new_train = (train[0] - mean) / std
+        new_valid = (valid[0] - mean) / std
+        new_test = (test[0] - mean) / std
 
-            return tensor
 
         return (
-            (train[0], train[1]),
-            (valid[0], valid[1]),
-            (test[0], test[1])
+            (new_train, train[1]),
+            (new_valid, valid[1]),
+            (new_test, test[1])
          )
 
-        # return (
-        #     (norm_single(train[0]), train[1]),
-        #     (norm_single(valid[0]), valid[1]),
-        #     (norm_single(test[0]), test[1])
-        #  )
 
     def test_equivariance(self):
         from functools import partial
@@ -293,18 +283,18 @@ class Trainer:
         # TODO CODE HERE
         pass
 
-tensor = torch.tensor([[1, 2],
-                       [3, 4],
-                       [5, 6]
-                       ])
-
-tr = Trainer(normalization = False)
+# tensor = torch.tensor([[1, 2],
+#                        [3, 4],
+#                        [5, 6]
+#                        ])
+#
+tr = Trainer(normalization = True)
 nc = NetworkConfiguration()
-
-
-test = ((tensor,tensor), (tensor,tensor), (tensor, tensor))
-res = tr.normalize(*test)
-print(res[0][0])
+#
+#
+# test = ((tensor,tensor), (tensor,tensor), (tensor, tensor))
+# res = tr.normalize(*test)
+# print(res[0][0])
 
 
 
