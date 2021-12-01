@@ -136,9 +136,49 @@ class Trainer:
         :param n_classes: The number of classes to predict.
         :param activation: The activation function to use.
         :return: A PyTorch model implementing the CNN.
+
+        class NetworkConfiguration(NamedTuple):
+            n_channels: Tuple[int, ...] = (16, 32, 48)
+            kernel_sizes: Tuple[int, ...] = (3, 3, 3)
+            strides: Tuple[int, ...] = (1, 1, 1)
+            paddings: Tuple[int, ...] = (0, 0, 0)
+            dense_hiddens: Tuple[int, ...] = (256, 256)
+
         """
-        # TODO write code here
-        pass
+        n_channels = list(net_config.n_channels)
+        n_channels = [in_channels] + n_channels
+        kernel_sizes = list(net_config.kernel_sizes)
+        strides = list(net_config.strides)
+        paddings = list(net_config.paddings)
+        layer_dim = list(net_config.dense_hiddens)
+        maxpool = torch.nn.MaxPool2d(kernel_size=2)
+
+        cnn_list = []
+        for i, n in enumerate(n_channels):
+            if i != len(n_channels) - 1:
+                cnn_list.append(torch.nn.Conv2d(in_channels=n, out_channels=n_channels[i+1], kernel_size=kernel_sizes[i], padding=paddings[i], stride=strides[i]))
+                cnn_list.append(activation)
+                cnn_list.append(maxpool)
+
+        cnn_list.append(torch.nn.AdaptiveMaxPool2d((4, 4)))
+        cnn_list.append(torch.nn.Flatten())
+        cnn_list.append(activation)
+        cnn_list.append(torch.nn.Linear(n_channels[-1]*4*4, layer_dim[0]))
+        cnn_list.append(activation)
+        layer_dim.append(n_classes)
+
+        for i, n in enumerate(layer_dim):
+            if i != len(layer_dim)-1:
+                cnn_list.append(torch.nn.Linear(n, layer_dim[i+1]))
+                cnn_list.append(activation)
+            print(n)
+
+        cnn_list.append(torch.nn.Softmax(dim=1))
+
+        cnn = torch.nn.Sequential(*cnn_list)
+        print(cnn)
+
+        return cnn
 
     @staticmethod
     def create_activation_function(activation_str: str) -> torch.nn.Module:
@@ -239,4 +279,4 @@ class Trainer:
 # tr = Trainer(normalization = False)
 # nc = NetworkConfiguration()
 #
-# tr.create_mlp(3, nc, 2, torch.nn.ReLU())
+# tr.create_cnn(3, nc, 2, torch.nn.ReLU())
