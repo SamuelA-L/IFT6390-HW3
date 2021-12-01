@@ -120,15 +120,6 @@ class Trainer:
         mlp_list.append(torch.nn.Softmax(dim=1))
         mlp = torch.nn.Sequential(*mlp_list)
 
-        # mlp = torch.nn.Sequential(
-        #     torch.nn.Flatten(),
-        #     torch.nn.Linear(input_dim, 256),
-        #     activation,
-        #     torch.nn.Linear(256, n_classes),
-        #     activation,
-        #     torch.nn.Softmax(n_classes, dim=1)
-        # )
-
         print(mlp)
 
         return mlp
