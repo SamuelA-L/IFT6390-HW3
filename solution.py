@@ -115,7 +115,6 @@ class Trainer:
             if i != len(layer_dim)-1:
                 mlp_list.append(torch.nn.Linear(n, layer_dim[i+1]))
                 mlp_list.append(activation)
-            print(n)
 
         mlp_list.append(torch.nn.Softmax(dim=1))
         mlp = torch.nn.Sequential(*mlp_list)
@@ -171,7 +170,6 @@ class Trainer:
             if i != len(layer_dim)-1:
                 cnn_list.append(torch.nn.Linear(n, layer_dim[i+1]))
                 cnn_list.append(activation)
-            print(n)
 
         cnn_list.append(torch.nn.Softmax(dim=1))
 
