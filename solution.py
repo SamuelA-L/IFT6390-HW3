@@ -22,18 +22,16 @@ class NetworkConfiguration(NamedTuple):
 
 # Pytorch preliminaries
 def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float:
-    # TODO WRITE CODE HERE
 
-    result = function(*tensor_list)
-    tensor_array = np.squeeze(np.array(tensor_list))
-    # output = np.array([function(tensor) for tensor in tensor_list])
+    print(len(tensor_list))
+    loss = function(*tensor_list)
+    loss.backward()
+    # print([tensor.grad for tensor in tensor_list])
+    # grads = np.array([tensor.grad for tensor in tensor_list])
+    grads = torch.cat(*(tensor.grad.data for tensor in tensor_list))
+    # norm = torch.norm(tensor_list.grad)
 
-    print(tensor_array)
-
-    # for tensor in tensor_list:
-    #     loss = output-tensor_array
-    #     grad = loss.grad
-    return 1.1
+    return np.linalg.norm(grads)
 
 
 def jacobian_norm(function: Callable, input_tensor: torch.Tensor) -> float:
@@ -206,17 +204,28 @@ class Trainer:
         # torch.where(predictions < self.epsilon, self.epsilon, predictions)
         # torch.where(predictions > 1-self.epsilon, 1-self.epsilon, predictions)
         # processed_pred = torch.logit(predictions, eps=self.epsilon)
-        # n_samples, n_features = predictions.size()
-        # for i in range(n_samples):
-        #     for j in range(n_features):
-        #         if predictions[i][j] < self.epsilon:
-        #             predictions[i][j] = self.epsilon
-        #         elif predictions[i][j] > 1-self.epsilon:
-        #             predictions[i][j] = 1-self.epsilon
+        n_samples, n_features = predictions.size()
+        for i in range(n_samples):
+            for j in range(n_features):
+                if predictions[i][j] < self.epsilon:
+                    predictions[i][j] = self.epsilon
+                elif predictions[i][j] > 1-self.epsilon:
+                    predictions[i][j] = 1-self.epsilon
 
         # loss_fn = torch.nn.CrossEntropyLoss()
+        # loss_val = loss_fn(predictions, y)
+
+
         loss_fn = torch.nn.NLLLoss()
-        loss_val = loss_fn(predictions, y.argmax(dim=1))
+        loss_val = loss_fn(torch.log(predictions), y.argmax(dim=1))
+
+        # loss = np.empty(len(y))
+        # y = y.softmax(dim=1)
+        # for i in range(n_samples) :
+        #     loss[i] = -torch.sum(predictions[i] * torch.log(y[i]))
+        #
+        #
+        # loss_val = loss.mean()
 
         n_samples = len(y)
         good = 0
