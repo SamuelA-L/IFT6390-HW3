@@ -196,8 +196,19 @@ class Trainer:
         return torch.tensor(one_hot)
 
     def compute_loss_and_accuracy(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
-        # TODO WRITE CODE HERE
-        pass
+
+        predictions = self.network(X)
+        loss = torch.nn.CrossEntropyLoss()
+        loss_val = loss(X,y)
+        # loss_val.backward()
+
+        all = len(y)
+        good = 0
+        for i in y :
+
+
+
+        return loss_val,
 
     @staticmethod
     def compute_gradient_norm(network: torch.nn.Module) -> float:
