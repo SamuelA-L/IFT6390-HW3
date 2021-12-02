@@ -24,6 +24,7 @@ class NetworkConfiguration(NamedTuple):
 def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float:
     # TODO WRITE CODE HERE
 
+    result = function(*tensor_list)
     tensor_array = np.squeeze(np.array(tensor_list))
     # output = np.array([function(tensor) for tensor in tensor_list])
 
@@ -36,8 +37,11 @@ def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float
 
 
 def jacobian_norm(function: Callable, input_tensor: torch.Tensor) -> float:
-    # TODO WRITE CODE HERE
-    pass
+
+    jacobian = torch.autograd.functional.jacobian(function, input_tensor)
+    norm = torch.norm(jacobian)
+
+    return norm
 
 
 class Trainer:
@@ -193,28 +197,44 @@ class Trainer:
         for i, label in enumerate(y_list):
             one_hot[i, int(label)] = 1
 
-        return torch.tensor(one_hot)
+        return torch.tensor(one_hot, dtype=float)
 
     def compute_loss_and_accuracy(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
 
+        y = y.to(torch.float64)
         predictions = self.network(X)
-        loss = torch.nn.CrossEntropyLoss()
-        loss_val = loss(X,y)
-        # loss_val.backward()
+        # torch.where(predictions < self.epsilon, self.epsilon, predictions)
+        # torch.where(predictions > 1-self.epsilon, 1-self.epsilon, predictions)
+        # processed_pred = torch.logit(predictions, eps=self.epsilon)
+        # n_samples, n_features = predictions.size()
+        # for i in range(n_samples):
+        #     for j in range(n_features):
+        #         if predictions[i][j] < self.epsilon:
+        #             predictions[i][j] = self.epsilon
+        #         elif predictions[i][j] > 1-self.epsilon:
+        #             predictions[i][j] = 1-self.epsilon
 
-        all = len(y)
+        # loss_fn = torch.nn.CrossEntropyLoss()
+        loss_fn = torch.nn.NLLLoss()
+        loss_val = loss_fn(predictions, y.argmax(dim=1))
+
+        n_samples = len(y)
         good = 0
-        for i in y :
+        for i, pred in enumerate(predictions):
+            if pred.argmax() == y[i].argmax():
+                good += 1
 
+        accuracy = good / n_samples
 
-
-        return loss_val,
+        return loss_val, accuracy
 
     @staticmethod
     def compute_gradient_norm(network: torch.nn.Module) -> float:
         # TODO WRITE CODE HERE
         # Compute the Euclidean norm of the gradients of the parameters of the network
         # with respect to the loss function.
+
+        norm = np.linalg.norm()
         pass
 
     def training_step(self, X_batch: torch.Tensor, y_batch: torch.Tensor) -> float:
@@ -293,25 +313,9 @@ class Trainer:
         # TODO CODE HERE
         pass
 
-# tensor = torch.tensor([[1, 2],
-#                        [3, 4],
-#                        [5, 6]
-#                        ])
 
-# tr = Trainer(normalization = True)
-# nc = NetworkConfiguration()
+tr = Trainer(normalization = True)
+nc = NetworkConfiguration()
+loss, acc = tr.compute_loss_and_accuracy(tr.train[0], tr.one_hot(tr.train[1]))
 
-
-# def one_hot(y: torch.Tensor) -> torch.Tensor:
-#     one_hot = np.zeros((len(y), 5), dtype=int)
-#     y_list = y.tolist()
-#     print(y_list)
-#     for i, label in enumerate(y_list):
-#         one_hot[i, int(label)] = 1
-#
-#     return torch.tensor(one_hot)
-#
-# tensor = torch.tensor([1,0,3,4])
-#
-# t = one_hot(tensor)
-# print('')
+print(loss, acc)
