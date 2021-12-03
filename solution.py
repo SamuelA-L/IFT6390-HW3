@@ -177,7 +177,7 @@ class Trainer:
     @staticmethod
     def create_activation_function(activation_str: str) -> torch.nn.Module:
         layer = None
-        if activation_str == "relu" :
+        if activation_str == "relu":
             layer = torch.nn.ReLU()
         elif activation_str == "tanh":
             layer = torch.nn.Tanh()
@@ -196,16 +196,41 @@ class Trainer:
 
     def compute_loss_and_accuracy(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
 
+        # with torch.no_grad():
+
         y = y.to(torch.float64)
         predictions = self.network(X)
-        predictions[predictions > 1-self.epsilon] = 1-self.epsilon
-        predictions[predictions < self.epsilon] = self.epsilon
+
+        # scaler = torch.nn.Hardtanh(min_val=self.epsilon, max_val=(1-self.epsilon))
+        # pred_scaled = scaler(predictions)
+
+
+        pred_scaled = torch.clamp(predictions, min=self.epsilon, max=(1-self.epsilon))
+
+
+        # with torch.no_grad():
+        # # pred_clone = torch.tensor.new_tensor(predictions)
+        #     predictions = predictions.clone().detach()
+        #     predictions[predictions > 1-self.epsilon] = 1-self.epsilon
+        #     predictions[predictions < self.epsilon] = self.epsilon
+        #
+        # predictions.requires_grad = True
+
+        # predictions_caped = torch.empty(predictions.size(), requires_grad=True)
+        # n_samples, n_features = predictions.size()
+        # for i in range(n_samples):
+        #     for j in range(n_features):
+        #         if predictions[i][j] < self.epsilon:
+        #             predictions_caped[i][j] = self.epsilon
+        #         elif predictions[i][j] > 1 - self.epsilon:
+        #             predictions_caped[i][j] = 1 - self.epsilon
+
         loss_fn = torch.nn.NLLLoss()
-        loss_val = loss_fn(torch.log(predictions), y.argmax(dim=1))
+        loss_val = loss_fn(torch.log(pred_scaled), y.argmax(dim=1))
 
         n_samples = len(y)
         good = 0
-        for i, pred in enumerate(predictions):
+        for i, pred in enumerate(pred_scaled):
             if pred.argmax() == y[i].argmax():
                 good += 1
 
@@ -219,23 +244,33 @@ class Trainer:
         # Compute the Euclidean norm of the gradients of the parameters of the network
         # with respect to the loss function.
 
-        # grads = np.array([p.grad for p in network.parameters()])
         # grads = tuple([p.grad for p in network.parameters()])
+        # network.forward()
+        # network.backward( )
         grads = [p.grad for p in network.parameters()]
-        # grads_sum = torch.stack(grads)
-        grad_tensor = torch.Tensor(np.array(grads))
-        norm = torch.norm(grad_tensor)
+        print(network)
+        print(network.parameters)
+        # print(network.parameters.grad)
+        print(grads)
+        print(len(grads))
+        # for grad in grads:
+        #     print(torch.norm(grad))
+        # grad_tensor = torch.stack(grads)
+        # grad_tensor = torch.Tensor(np.array(grads))
+        # norm = torch.linalg.norm(grads)
 
-        return norm
+        return 2.0
 
     def training_step(self, X_batch: torch.Tensor, y_batch: torch.Tensor) -> float:
         # TODO WRITE CODE HERE
 
-        # self.optimizer.zero_grad()
-        # loss.backward()
-        # self.optimizer.step()
+        loss_fn = torch.nn.NLLLoss()
+        loss = loss_fn(self.network(X_batch), y_batch.argmax(dim=1))
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
-        pass
+        return 2.0
 
     def log_metrics(self, X_train: torch.Tensor, y_train_oh: torch.Tensor,
                     X_valid: torch.Tensor, y_valid_oh: torch.Tensor) -> None:
@@ -319,4 +354,5 @@ class Trainer:
 # tr = Trainer(normalization = True)
 # nc = NetworkConfiguration()
 # tr.compute_gradient_norm(tr.network)
+# tr.compute_loss_and_accuracy(tr.train[0], tr.one_hot(tr.train[1]))
 # print('')
