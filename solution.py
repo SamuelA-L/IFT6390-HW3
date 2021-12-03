@@ -203,29 +203,22 @@ class Trainer:
         predictions = self.network(X)
         # torch.where(predictions < self.epsilon, self.epsilon, predictions)
         # torch.where(predictions > 1-self.epsilon, 1-self.epsilon, predictions)
-        # processed_pred = torch.logit(predictions, eps=self.epsilon)
-        n_samples, n_features = predictions.size()
-        for i in range(n_samples):
-            for j in range(n_features):
-                if predictions[i][j] < self.epsilon:
-                    predictions[i][j] = self.epsilon
-                elif predictions[i][j] > 1-self.epsilon:
-                    predictions[i][j] = 1-self.epsilon
 
-        # loss_fn = torch.nn.CrossEntropyLoss()
-        # loss_val = loss_fn(predictions, y)
+        predictions[predictions > 1-self.epsilon] = 1-self.epsilon
+        predictions[predictions < self.epsilon] = self.epsilon
+
+        # n_samples, n_features = predictions.size()
+        # for i in range(n_samples):
+        #     for j in range(n_features):
+        #         if predictions[i][j] < self.epsilon:
+        #             predictions[i][j] = self.epsilon
+        #         elif predictions[i][j] > 1-self.epsilon:
+        #             predictions[i][j] = 1-self.epsilon
 
 
         loss_fn = torch.nn.NLLLoss()
         loss_val = loss_fn(torch.log(predictions), y.argmax(dim=1))
 
-        # loss = np.empty(len(y))
-        # y = y.softmax(dim=1)
-        # for i in range(n_samples) :
-        #     loss[i] = -torch.sum(predictions[i] * torch.log(y[i]))
-        #
-        #
-        # loss_val = loss.mean()
 
         n_samples = len(y)
         good = 0
@@ -242,9 +235,11 @@ class Trainer:
         # TODO WRITE CODE HERE
         # Compute the Euclidean norm of the gradients of the parameters of the network
         # with respect to the loss function.
+        network.backward()
+        norm = torch.norm(network.grad)
 
-        norm = np.linalg.norm()
-        pass
+        # norm = np.linalg.norm()
+        return norm
 
     def training_step(self, X_batch: torch.Tensor, y_batch: torch.Tensor) -> float:
         # TODO WRITE CODE HERE
@@ -282,7 +277,10 @@ class Trainer:
         return self.train_logs
 
     def evaluate(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
-        # TODO WRITE CODE HERE
+        # with torch.no_grad():
+        #     loss, acc = self.compute_loss_and_accuracy(X, y)
+        #
+        # return (loss, acc)
         pass
 
     @staticmethod
@@ -323,8 +321,8 @@ class Trainer:
         pass
 
 
-tr = Trainer(normalization = True)
-nc = NetworkConfiguration()
-loss, acc = tr.compute_loss_and_accuracy(tr.train[0], tr.one_hot(tr.train[1]))
-
-print(loss, acc)
+# tr = Trainer(normalization = True)
+# nc = NetworkConfiguration()
+# loss, acc = tr.compute_loss_and_accuracy(tr.train[0], tr.one_hot(tr.train[1]))
+#
+# print(loss, acc)
