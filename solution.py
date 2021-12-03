@@ -272,6 +272,8 @@ class Trainer:
 
     def evaluate(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
 
+        print(y.size()[0])
+        y = self.one_hot(y)
         with torch.no_grad():
             loss, accuracy = self.compute_loss_and_accuracy(X, y)
 
