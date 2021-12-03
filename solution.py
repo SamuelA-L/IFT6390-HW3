@@ -196,34 +196,9 @@ class Trainer:
 
     def compute_loss_and_accuracy(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
 
-        # with torch.no_grad():
-
         y = y.to(torch.float64)
         predictions = self.network(X)
-
-        # scaler = torch.nn.Hardtanh(min_val=self.epsilon, max_val=(1-self.epsilon))
-        # pred_scaled = scaler(predictions)
-
-
         pred_scaled = torch.clamp(predictions, min=self.epsilon, max=(1-self.epsilon))
-
-
-        # with torch.no_grad():
-        # # pred_clone = torch.tensor.new_tensor(predictions)
-        #     predictions = predictions.clone().detach()
-        #     predictions[predictions > 1-self.epsilon] = 1-self.epsilon
-        #     predictions[predictions < self.epsilon] = self.epsilon
-        #
-        # predictions.requires_grad = True
-
-        # predictions_caped = torch.empty(predictions.size(), requires_grad=True)
-        # n_samples, n_features = predictions.size()
-        # for i in range(n_samples):
-        #     for j in range(n_features):
-        #         if predictions[i][j] < self.epsilon:
-        #             predictions_caped[i][j] = self.epsilon
-        #         elif predictions[i][j] > 1 - self.epsilon:
-        #             predictions_caped[i][j] = 1 - self.epsilon
 
         loss_fn = torch.nn.NLLLoss()
         loss_val = loss_fn(torch.log(pred_scaled), y.argmax(dim=1))
@@ -244,22 +219,11 @@ class Trainer:
         # Compute the Euclidean norm of the gradients of the parameters of the network
         # with respect to the loss function.
 
-        # grads = tuple([p.grad for p in network.parameters()])
-        # network.forward()
-        # network.backward( )
-        grads = [p.grad for p in network.parameters()]
-        print(network)
-        print(network.parameters)
-        # print(network.parameters.grad)
-        print(grads)
-        print(len(grads))
-        # for grad in grads:
-        #     print(torch.norm(grad))
-        # grad_tensor = torch.stack(grads)
-        # grad_tensor = torch.Tensor(np.array(grads))
-        # norm = torch.linalg.norm(grads)
+        grads = tuple([torch.flatten(p.grad) for p in network.parameters()])
+        concat_grads = torch.cat(grads)
+        norm = torch.linalg.norm(concat_grads)
 
-        return 2.0
+        return norm
 
     def training_step(self, X_batch: torch.Tensor, y_batch: torch.Tensor) -> float:
         # TODO WRITE CODE HERE
