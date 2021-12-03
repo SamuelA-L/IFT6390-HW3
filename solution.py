@@ -25,11 +25,8 @@ def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float
 
     loss = function(*tensor_list)
     loss.backward()
-    # print([tensor.grad for tensor in tensor_list])
-    # grads = np.array([tensor.grad for tensor in tensor_list])
-    grads = torch.stack((tensor.grad for tensor in tensor_list))
+    grads = torch.stack(tuple([tensor.grad for tensor in tensor_list]))
     norm = torch.norm(grads)
-    # norm = np.linalg.norm(grads)
 
     return norm
 
