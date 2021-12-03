@@ -223,18 +223,20 @@ class Trainer:
         concat_grads = torch.cat(grads)
         norm = torch.linalg.norm(concat_grads)
 
-        return norm
+        return norm.item()
 
     def training_step(self, X_batch: torch.Tensor, y_batch: torch.Tensor) -> float:
-        # TODO WRITE CODE HERE
 
         loss_fn = torch.nn.NLLLoss()
-        loss = loss_fn(self.network(X_batch), y_batch.argmax(dim=1))
+        preds = self.network(X_batch)
+        pred_scaled = torch.clamp(preds, min=self.epsilon, max=(1-self.epsilon))
+        loss = loss_fn(torch.log(pred_scaled), y_batch.argmax(dim=1))
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        grad_norm = self.compute_gradient_norm(self.network)
 
-        return 2.0
+        return grad_norm
 
     def log_metrics(self, X_train: torch.Tensor, y_train_oh: torch.Tensor,
                     X_valid: torch.Tensor, y_valid_oh: torch.Tensor) -> None:
@@ -313,10 +315,3 @@ class Trainer:
 
         # TODO CODE HERE
         pass
-
-
-# tr = Trainer(normalization = True)
-# nc = NetworkConfiguration()
-# tr.compute_gradient_norm(tr.network)
-# tr.compute_loss_and_accuracy(tr.train[0], tr.one_hot(tr.train[1]))
-# print('')
