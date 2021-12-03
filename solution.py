@@ -201,24 +201,10 @@ class Trainer:
 
         y = y.to(torch.float64)
         predictions = self.network(X)
-        # torch.where(predictions < self.epsilon, self.epsilon, predictions)
-        # torch.where(predictions > 1-self.epsilon, 1-self.epsilon, predictions)
-
         predictions[predictions > 1-self.epsilon] = 1-self.epsilon
         predictions[predictions < self.epsilon] = self.epsilon
-
-        # n_samples, n_features = predictions.size()
-        # for i in range(n_samples):
-        #     for j in range(n_features):
-        #         if predictions[i][j] < self.epsilon:
-        #             predictions[i][j] = self.epsilon
-        #         elif predictions[i][j] > 1-self.epsilon:
-        #             predictions[i][j] = 1-self.epsilon
-
-
         loss_fn = torch.nn.NLLLoss()
         loss_val = loss_fn(torch.log(predictions), y.argmax(dim=1))
-
 
         n_samples = len(y)
         good = 0
