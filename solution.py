@@ -23,15 +23,15 @@ class NetworkConfiguration(NamedTuple):
 # Pytorch preliminaries
 def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float:
 
-    print(len(tensor_list))
     loss = function(*tensor_list)
     loss.backward()
     # print([tensor.grad for tensor in tensor_list])
     # grads = np.array([tensor.grad for tensor in tensor_list])
-    grads = torch.cat(*(tensor.grad.data for tensor in tensor_list))
-    # norm = torch.norm(tensor_list.grad)
+    grads = torch.stack((tensor.grad for tensor in tensor_list))
+    norm = torch.norm(grads)
+    # norm = np.linalg.norm(grads)
 
-    return np.linalg.norm(grads)
+    return norm
 
 
 def jacobian_norm(function: Callable, input_tensor: torch.Tensor) -> float:
@@ -221,6 +221,7 @@ class Trainer:
         # TODO WRITE CODE HERE
         # Compute the Euclidean norm of the gradients of the parameters of the network
         # with respect to the loss function.
+        torch.autograd.set_detect_anomaly(True)
         network.backward()
         norm = torch.norm(network.grad)
 
@@ -229,6 +230,11 @@ class Trainer:
 
     def training_step(self, X_batch: torch.Tensor, y_batch: torch.Tensor) -> float:
         # TODO WRITE CODE HERE
+
+        # self.optimizer.zero_grad()
+        # loss.backward()
+        # self.optimizer.step()
+
         pass
 
     def log_metrics(self, X_train: torch.Tensor, y_train_oh: torch.Tensor,
@@ -263,11 +269,12 @@ class Trainer:
         return self.train_logs
 
     def evaluate(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, float]:
-        # with torch.no_grad():
-        #     loss, acc = self.compute_loss_and_accuracy(X, y)
-        #
-        # return (loss, acc)
-        pass
+
+        with torch.no_grad():
+            loss, accuracy = self.compute_loss_and_accuracy(X, y)
+
+        return loss, accuracy
+
 
     @staticmethod
     def normalize(train: Tuple[torch.Tensor, torch.Tensor],
