@@ -22,11 +22,11 @@ class NetworkConfiguration(NamedTuple):
 
 # Pytorch preliminaries
 def gradient_norm(function: Callable, *tensor_list: List[torch.Tensor]) -> float:
-    with torch.no_grad():
-        loss = function(*tensor_list)
-        loss.backward()
-        grads = torch.stack(tuple([tensor.grad for tensor in tensor_list]))
-        norm = torch.norm(grads)
+
+    loss = function(*tensor_list)
+    loss.backward()
+    grads = torch.stack(tuple([tensor.grad for tensor in tensor_list]))
+    norm = torch.norm(grads)
 
     return norm
 
@@ -216,15 +216,17 @@ class Trainer:
     @staticmethod
     def compute_gradient_norm(network: torch.nn.Module) -> float:
         # TODO WRITE CODE HERE
+
         # Compute the Euclidean norm of the gradients of the parameters of the network
         # with respect to the loss function.
         # torch.autograd.set_detect_anomaly(True)
         # network.backward()
         # norm = torch.norm(network.grad)
         # norm = np.linalg.norm()
-        network.backward()
-        # grads = torch.stack(tuple([tensor.grad for tensor in tensor_list]))
-        norm = torch.norm(network.grad)
+        with torch.no_grad():
+            network.backward()
+            # grads = torch.stack(tuple([tensor.grad for tensor in tensor_list]))
+            norm = torch.norm(network.grad)
 
         return norm
 
