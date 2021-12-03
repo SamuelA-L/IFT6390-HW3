@@ -215,18 +215,16 @@ class Trainer:
 
     @staticmethod
     def compute_gradient_norm(network: torch.nn.Module) -> float:
-        # TODO WRITE CODE HERE
 
         # Compute the Euclidean norm of the gradients of the parameters of the network
         # with respect to the loss function.
-        # torch.autograd.set_detect_anomaly(True)
-        # network.backward()
-        # norm = torch.norm(network.grad)
-        # norm = np.linalg.norm()
-        with torch.no_grad():
-            network.backward()
-            # grads = torch.stack(tuple([tensor.grad for tensor in tensor_list]))
-            norm = torch.norm(network.grad)
+
+        # grads = np.array([p.grad for p in network.parameters()])
+        # grads = tuple([p.grad for p in network.parameters()])
+        grads = [p.grad for p in network.parameters()]
+        # grads_sum = torch.stack(grads)
+        grad_tensor = torch.Tensor(np.array(grads))
+        norm = torch.norm(grad_tensor)
 
         return norm
 
@@ -320,6 +318,5 @@ class Trainer:
 
 # tr = Trainer(normalization = True)
 # nc = NetworkConfiguration()
-# loss, acc = tr.compute_loss_and_accuracy(tr.train[0], tr.one_hot(tr.train[1]))
-#
-# print(loss, acc)
+# tr.compute_gradient_norm(tr.network)
+# print('')
