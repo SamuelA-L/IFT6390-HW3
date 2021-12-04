@@ -424,28 +424,40 @@ def train_network(file=False):
         with open('q3_default.json', 'w') as file:
             json.dump(logs_dict, file)
 
+
+
+def plot_comparison():
+    with open('q2_mlp_norm.json') as json_file:
+        w_norm_dict = json.load(json_file)
+
+    with open('q3_default.json') as json_file:
+        mlp_64_dict = json.load(json_file)
+
+    plt.title("Training mlp  53x64 vs 2x256 (layesrxfilters)")
+    plt.plot(mlp_64_dict['validation_accuracy'], label=' validation accuracy mlp (64x53)')
+    plt.plot(mlp_64_dict['train_accuracy'], label=' train accuracy mlp (64x53)')
+    plt.plot(w_norm_dict['1']['validation_accuracy'], label=' validation accuracy mlp (256x2)')
+    plt.plot(w_norm_dict['1']['train_accuracy'], label=' train accuracy mlp (256x2)')
+    plt.xlabel('epochs')
+    plt.ylabel('metric')
+    plt.legend()
+    plt.show()
+
+    plt.title("Training gradient norm of mlp 53x64 vs 2x256 (layesrxfilters)")
+    plt.plot(mlp_64_dict['train_gradient_norm'], label='mlp (64x53)')
+    plt.plot(w_norm_dict['1']['train_gradient_norm'], label='mlp (256x2)')
+    plt.xlabel('epochs')
+    plt.ylabel('train_gradient_norm')
+    plt.legend()
+    plt.show()
+
 # train_network(file=True)
-with open('q2_mlp_norm.json') as json_file:
-    w_norm_dict = json.load(json_file)
+# plot_comparison()
 
-with open('q3_default.json') as json_file:
-    mlp_64_dict = json.load(json_file)
 
-plt.title("Training mlp  53*64 vs 2*256 (layesr*filters)")
-plt.plot(mlp_64_dict['validation_accuracy'], label=' validation accuracy mlp (64x53)')
-plt.plot(mlp_64_dict['train_accuracy'], label=' train accuracy mlp (64x53)')
-plt.plot(w_norm_dict['1']['validation_accuracy'], label=' validation accuracy mlp (256x2)')
-plt.plot(w_norm_dict['1']['train_accuracy'], label=' train accuracy mlp (256x2)')
-plt.xlabel('epochs')
-plt.ylabel('metric')
-plt.legend()
-plt.show()
+# q4
 
-plt.title("Training gradient norm of mlp"
-          " 53*64 vs 2*256 (layesr*filters)")
-plt.plot(mlp_64_dict['train_gradient_norm'], label='=mlp (64*53)')
-plt.plot(w_norm_dict['1']['train_gradient_norm'], label='mlp (256x2)')
-plt.xlabel('epochs')
-plt.ylabel('train_gradient_norm')
-plt.legend()
-plt.show()
+config = NetworkConfiguration(n_channels=(16, 32, 45), kernel_sizes=(3, 3, 3))
+trainer = Trainer(batch_size=128, activation_name="relu", network_type="cnn", normalization=False, net_config=config)
+print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+logs = trainer.train_loop(n_epochs=50)
