@@ -4,6 +4,7 @@ import torch
 from typing import Tuple, Callable, List, NamedTuple
 import torchvision
 import tqdm
+import matplotlib.pyplot as plt
 
 
 # Seed all random number generators
@@ -313,5 +314,47 @@ class Trainer:
         rotation = partial(torchvision.transforms.functional.affine, angle=90,
                            translate=(0, 0), scale=1, shear=0)
 
-        # TODO CODE HERE
-        pass
+        def show_image(tensor) :
+
+            plt.imshow(tensor.permute(1, 2, 0), cmap='gray')
+            plt.show()
+
+        # first figure
+        show_image(self.train[0][0])
+
+        # second image
+        cnn_image = model(torch.tensor(torch.unsqueeze(self.train[0][0].clone().detach(), 0)))
+        show_image(torch.squeeze(cnn_image.clone().detach(), 0))
+
+        # third image
+
+        shifted_output = shift(cnn_image.clone().detach())
+        show_image(torch.squeeze(shifted_output.clone().detach(), 0))
+
+        shifted_input = shift(self.train[0][0].clone().detach())
+        cnn_shifted_input = model(torch.unsqueeze(shifted_input.clone().detach(), 0))
+        show_image(torch.squeeze(cnn_shifted_input.clone().detach(), 0))
+
+        diff_image = torch.sub(shifted_output, cnn_shifted_input)
+        show_image(torch.squeeze(diff_image.clone().detach(), 0))
+
+        # fourth image
+
+        rot_output = rotation(cnn_image.clone().detach())
+        show_image(torch.squeeze(rot_output.clone().detach(), 0))
+
+        rot_input = rotation(self.train[0][0].clone().detach())
+        cnn_rot_input = model(torch.unsqueeze(rot_input.clone().detach(), 0))
+        show_image(torch.squeeze(cnn_rot_input.clone().detach(), 0))
+
+        diff_image = torch.sub(rot_output, cnn_rot_input)
+        show_image(torch.squeeze(diff_image.clone().detach(), 0))
+
+
+
+
+
+
+
+trainer = Trainer(normalization=True)
+trainer.test_equivariance()
