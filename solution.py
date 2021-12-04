@@ -4,8 +4,8 @@ import torch
 from typing import Tuple, Callable, List, NamedTuple
 import torchvision
 import tqdm
-import matplotlib.pyplot as plt
-import json
+# import matplotlib.pyplot as plt
+# import json
 
 
 # Seed all random number generators
@@ -156,7 +156,8 @@ class Trainer:
             if i != len(n_channels) - 1:
                 cnn_list.append(torch.nn.Conv2d(in_channels=n, out_channels=n_channels[i+1], kernel_size=kernel_sizes[i], padding=paddings[i], stride=strides[i]))
                 cnn_list.append(activation)
-                cnn_list.append(maxpool)
+                if i != len(n_channels) - 2:
+                    cnn_list.append(maxpool)
 
         cnn_list.append(torch.nn.AdaptiveMaxPool2d((4, 4)))
         cnn_list.append(torch.nn.Flatten())
@@ -315,7 +316,7 @@ class Trainer:
         rotation = partial(torchvision.transforms.functional.affine, angle=90,
                            translate=(0, 0), scale=1, shear=0)
 
-        def show_image(tensor) :
+        def show_image(tensor):
 
             plt.imshow(tensor.permute(1, 2, 0), cmap='gray')
             plt.show()
@@ -352,112 +353,115 @@ class Trainer:
             diff_image = torch.sub(rot_output, cnn_rot_input)
             show_image(torch.squeeze(diff_image.clone().detach(), 0))
 
+        q1()
 
- # q1
-# trainer = Trainer(normalization=True)
-# trainer.test_equivariance()
-
-#q2
-
-def make_training_logs(lr_list, file : bool = False):
-    # no normalization
-    logs_dict = {}
-    for i, learning_rate in enumerate(lr_list) :
-        trainer = Trainer(batch_size=128, activation_name="relu", network_type="mlp", normalization=False)
-        print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
-        logs_dict[str(i)] = trainer.train_loop(n_epochs=50)
-
-    if file:
-        with open('q2_mlp_no_norm.json', 'w') as file:
-            json.dump(logs_dict, file)
-
-    # normalization
-
-    logs_dict = {}
-    for i, learning_rate in enumerate(lr_list):
-        trainer = Trainer(batch_size=128, activation_name="relu", network_type="mlp", normalization=True)
-        print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
-        logs_dict[str(i)] = trainer.train_loop(n_epochs=50)
-
-    if file:
-        with open('q2_mlp_norm.json', 'w') as file:
-            json.dump(logs_dict, file)
-
-
-def accuracy_graphs():
-    with open('q2_mlp_no_norm.json') as json_file:
-        no_norm_dict = json.load(json_file)
-
-    with open('q2_mlp_norm.json') as json_file:
-        w_norm_dict = json.load(json_file)
-
-    plt.title("Training mlp without normalization by learning rate")
-    [plt.plot(v['validation_accuracy'], label=lr_list[int(k)]) for k, v in no_norm_dict.items()]
-    plt.xlabel('epochs')
-    plt.ylabel('Validation accuracy')
-    plt.legend()
-    plt.show()
-
-    plt.title("Training mlp with normalization by learning rate")
-    [plt.plot(v['validation_accuracy'], label=lr_list[int(k)]) for k, v in w_norm_dict.items()]
-    plt.xlabel('epochs')
-    plt.ylabel('Validation accuracy')
-    plt.legend()
-    plt.show()
-
-lr_list = [0.01, 0.0001, 0.00000001]
-# make_training_logs(lr_list, file=False)
-# accuracy_graphs()
-
-
-
-
-#q3
-
-def train_network(file=False):
-    config = NetworkConfiguration(dense_hiddens=tuple([64]*54))
-    trainer = Trainer(net_config=config)
-    print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
-    logs_dict = trainer.train_loop(n_epochs=50)
-
-    if file:
-        with open('q3_default.json', 'w') as file:
-            json.dump(logs_dict, file)
-
-
-
-def plot_comparison():
-    with open('q2_mlp_norm.json') as json_file:
-        w_norm_dict = json.load(json_file)
-
-    with open('q3_default.json') as json_file:
-        mlp_64_dict = json.load(json_file)
-
-    plt.title("Training mlp  53x64 vs 2x256 (layesrxfilters)")
-    plt.plot(mlp_64_dict['validation_accuracy'], label=' validation accuracy mlp (64x53)')
-    plt.plot(mlp_64_dict['train_accuracy'], label=' train accuracy mlp (64x53)')
-    plt.plot(w_norm_dict['1']['validation_accuracy'], label=' validation accuracy mlp (256x2)')
-    plt.plot(w_norm_dict['1']['train_accuracy'], label=' train accuracy mlp (256x2)')
-    plt.xlabel('epochs')
-    plt.ylabel('metric')
-    plt.legend()
-    plt.show()
-
-    plt.title("Training gradient norm of mlp 53x64 vs 2x256 (layesrxfilters)")
-    plt.plot(mlp_64_dict['train_gradient_norm'], label='mlp (64x53)')
-    plt.plot(w_norm_dict['1']['train_gradient_norm'], label='mlp (256x2)')
-    plt.xlabel('epochs')
-    plt.ylabel('train_gradient_norm')
-    plt.legend()
-    plt.show()
-
+#
+#  # q1
+# # trainer = Trainer(normalization=True)
+# # trainer.test_equivariance()
+#
+# #q2
+#
+# def make_training_logs(lr_list, file : bool = False):
+#     # no normalization
+#     logs_dict = {}
+#     for i, learning_rate in enumerate(lr_list) :
+#         trainer = Trainer(batch_size=128, activation_name="relu", network_type="mlp", normalization=False)
+#         print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+#         logs_dict[str(i)] = trainer.train_loop(n_epochs=50)
+#
+#     if file:
+#         with open('q2_mlp_no_norm.json', 'w') as file:
+#             json.dump(logs_dict, file)
+#
+#     # normalization
+#
+#     logs_dict = {}
+#     for i, learning_rate in enumerate(lr_list):
+#         trainer = Trainer(batch_size=128, activation_name="relu", network_type="mlp", normalization=True)
+#         print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+#         logs_dict[str(i)] = trainer.train_loop(n_epochs=50)
+#
+#     if file:
+#         with open('q2_mlp_norm.json', 'w') as file:
+#             json.dump(logs_dict, file)
+#
+#
+# def accuracy_graphs():
+#     with open('q2_mlp_no_norm.json') as json_file:
+#         no_norm_dict = json.load(json_file)
+#
+#     with open('q2_mlp_norm.json') as json_file:
+#         w_norm_dict = json.load(json_file)
+#
+#     plt.title("Training mlp without normalization by learning rate")
+#     [plt.plot(v['validation_accuracy'], label=lr_list[int(k)]) for k, v in no_norm_dict.items()]
+#     plt.xlabel('epochs')
+#     plt.ylabel('Validation accuracy')
+#     plt.legend()
+#     plt.show()
+#
+#     plt.title("Training mlp with normalization by learning rate")
+#     [plt.plot(v['validation_accuracy'], label=lr_list[int(k)]) for k, v in w_norm_dict.items()]
+#     plt.xlabel('epochs')
+#     plt.ylabel('Validation accuracy')
+#     plt.legend()
+#     plt.show()
+#
+# lr_list = [0.01, 0.0001, 0.00000001]
+# # make_training_logs(lr_list, file=False)
+# # accuracy_graphs()
+#
+#
+#
+#
+# #q3
+#
+# def train_network(file=False):
+#     config = NetworkConfiguration(dense_hiddens=tuple([64]*54))
+#     trainer = Trainer(net_config=config)
+#     print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+#     logs_dict = trainer.train_loop(n_epochs=50)
+#
+#     if file:
+#         with open('q3_default.json', 'w') as file:
+#             json.dump(logs_dict, file)
+#
+#
+#
+# def plot_comparison():
+#     with open('q2_mlp_norm.json') as json_file:
+#         w_norm_dict = json.load(json_file)
+#
+#     with open('q3_default.json') as json_file:
+#         mlp_64_dict = json.load(json_file)
+#
+#     plt.title("Training mlp  53x64 vs 2x256 (layesrxfilters)")
+#     plt.plot(mlp_64_dict['validation_accuracy'], label=' validation accuracy mlp (64x53)')
+#     plt.plot(mlp_64_dict['train_accuracy'], label=' train accuracy mlp (64x53)')
+#     plt.plot(w_norm_dict['1']['validation_accuracy'], label=' validation accuracy mlp (256x2)')
+#     plt.plot(w_norm_dict['1']['train_accuracy'], label=' train accuracy mlp (256x2)')
+#     plt.xlabel('epochs')
+#     plt.ylabel('metric')
+#     plt.legend()
+#     plt.show()
+#
+#     plt.title("Training gradient norm of mlp 53x64 vs 2x256 (layesrxfilters)")
+#     plt.plot(mlp_64_dict['train_gradient_norm'], label='mlp (64x53)')
+#     plt.plot(w_norm_dict['1']['train_gradient_norm'], label='mlp (256x2)')
+#     plt.xlabel('epochs')
+#     plt.ylabel('train_gradient_norm')
+#     plt.legend()
+#     plt.show()
+#
 # train_network(file=True)
 # plot_comparison()
 
 
 # q4
 
-config = NetworkConfiguration(n_channels=(16, 32, 45), kernel_sizes=(3, 3, 3))
-trainer = Trainer(batch_size=128, activation_name="relu", network_type="cnn", normalization=False, net_config=config)
-print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
-logs = trainer.train_loop(n_epochs=50)
+# config = NetworkConfiguration(n_channels=(16, 32, 45), kernel_sizes=(3, 3, 3))
+# trainer = Trainer(batch_size=128, activation_name="relu", network_type="cnn", normalization=False, net_config=config)
+# print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+# print(trainer.network)
+# logs = trainer.train_loop(n_epochs=50)
