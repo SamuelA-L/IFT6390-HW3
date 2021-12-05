@@ -367,7 +367,7 @@ def make_training_logs(lr_list, file : bool = False):
     logs_dict = {}
     for i, learning_rate in enumerate(lr_list) :
         trainer = Trainer(batch_size=128, activation_name="relu", network_type="mlp", normalization=False)
-        print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+        print('nb_params : ', sum(param.numel() for param in trainer.network.parameters() if param.requires_grad))
         logs_dict[str(i)] = trainer.train_loop(n_epochs=50)
 
     if file:
@@ -379,7 +379,7 @@ def make_training_logs(lr_list, file : bool = False):
     logs_dict = {}
     for i, learning_rate in enumerate(lr_list):
         trainer = Trainer(batch_size=128, activation_name="relu", network_type="mlp", normalization=True)
-        print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+        print('nb_params : ', sum(param.numel() for param in trainer.network.parameters() if param.requires_grad))
         logs_dict[str(i)] = trainer.train_loop(n_epochs=50)
 
     if file:
@@ -420,7 +420,7 @@ lr_list = [0.01, 0.0001, 0.00000001]
 def train_network(file=False):
     config = NetworkConfiguration(network_type="mlp", dense_hiddens=tuple([64]*54))
     trainer = Trainer(net_config=config)
-    print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+    print('nb_params : ', sum(param.numel() for param in trainer.network.parameters() if param.requires_grad))
     logs_dict = trainer.train_loop(n_epochs=50)
 
     if file:
@@ -462,7 +462,7 @@ def plot_comparison():
 def train_and_log_cnn(file=False):
     config = NetworkConfiguration(n_channels=(16, 32, 45), kernel_sizes=(3, 3, 3))
     trainer = Trainer(network_type="cnn", net_config=config)
-    print('nb_params : ', sum(p.numel() for p in trainer.network.parameters() if p.requires_grad))
+    print('nb_params : ', sum(param.numel() for param in trainer.network.parameters() if param.requires_grad))
     logs_dict = trainer.train_loop(n_epochs=50)
 
     if file:
@@ -470,20 +470,71 @@ def train_and_log_cnn(file=False):
             json.dump(logs_dict, file)
 
 
-with open('q2_mlp_norm.json') as json_file:
-    w_norm_dict = json.load(json_file)
+def plot_q4():
+    with open('q2_mlp_norm.json') as json_file:
+        w_norm_dict = json.load(json_file)
 
-with open('q4_cnn.json') as json_file:
-    cnn_dict = json.load(json_file)
+    with open('q4_cnn.json') as json_file:
+        cnn_dict = json.load(json_file)
+
+    plt.title("MLP vs CNN with similar number of parameters")
+    plt.plot(cnn_dict['validation_accuracy'], label='CNN validation accuracy')
+    plt.plot(cnn_dict['train_accuracy'], label='CNN train accuracy')
+    plt.plot(w_norm_dict['1']['validation_accuracy'], label='MLP validation accuracy')
+    plt.plot(w_norm_dict['1']['train_accuracy'], label='MLP train accuracy ')
+    plt.xlabel('epochs')
+    plt.ylabel('metric')
+    plt.legend()
+    plt.show()
 
 # train_and_log_cnn(True)
+# plot_q4()
 
-plt.title("MLP vs CNN with similar number of parameters")
-plt.plot(cnn_dict['validation_accuracy'], label='CNN validation accuracy')
-plt.plot(cnn_dict['train_accuracy'], label='CNN train accuracy')
-plt.plot(w_norm_dict['1']['validation_accuracy'], label='MLP validation accuracy')
-plt.plot(w_norm_dict['1']['train_accuracy'], label='MLP train accuracy ')
-plt.xlabel('epochs')
-plt.ylabel('metric')
-plt.legend()
-plt.show()
+
+#q5
+
+def train_q5_deep_cnn(file=False):
+    config = NetworkConfiguration(n_channels=(8, 16, 32, 64), strides=(1, 1, 1, 1), paddings=(0, 0, 0, 0),  kernel_sizes=(1, 1, 1, 1), dense_hiddens=(256, 256))
+    trainer = Trainer(network_type="cnn", net_config=config, batch_size=256)
+    print('nb_params : ', sum(param.numel() for param in trainer.network.parameters() if param.requires_grad))
+    logs_dict = trainer.train_loop(n_epochs=50)
+
+    if file:
+        with open('q5_deep_cnn.json', 'w') as file:
+            json.dump(logs_dict, file)
+
+def train_q5_shallow_cnn(file=False):
+    config = NetworkConfiguration(n_channels=(54,), strides=(1,), paddings=(0,),  kernel_sizes=(28,), dense_hiddens=(256, 256))
+    trainer = Trainer(network_type="cnn", net_config=config, batch_size=256)
+    print('nb_params : ', sum(param.numel() for param in trainer.network.parameters() if param.requires_grad))
+    logs_dict = trainer.train_loop(n_epochs=50)
+
+    if file:
+        with open('q5_shallow_cnn.json', 'w') as file:
+            json.dump(logs_dict, file)
+
+def plot_q5():
+    with open('q5_deep_cnn.json') as json_file:
+        deep_dict = json.load(json_file)
+
+    with open('q5_shallow_cnn.json') as json_file:
+        shallow_dict = json.load(json_file)
+
+    with open('q4_cnn.json') as json_file:
+        cnn_dict = json.load(json_file)
+
+    plt.title("MLP vs CNN with similar number of parameters")
+    plt.plot(cnn_dict['validation_accuracy'], label='CNN validation accuracy')
+    plt.plot(cnn_dict['train_accuracy'], label='CNN train accuracy')
+    plt.plot(deep_dict['validation_accuracy'], label='Deep CNN validation accuracy')
+    plt.plot(deep_dict['train_accuracy'], label='Deep CNN train accuracy')
+    plt.plot(shallow_dict['validation_accuracy'], label='Shallow CNN validation accuracy')
+    plt.plot(shallow_dict['train_accuracy'], label='Shallow CNN train accuracy')
+    plt.xlabel('epochs')
+    plt.ylabel('metric')
+    plt.legend()
+    plt.show()
+
+train_q5_deep_cnn(True)
+train_q5_shallow_cnn(True)
+plot_q5()
