@@ -418,7 +418,7 @@ lr_list = [0.01, 0.0001, 0.00000001]
 #q3
 
 def train_network(file=False):
-    config = NetworkConfiguration(network_type="mlp", dense_hiddens=tuple([64]*54))
+    config = NetworkConfiguration(dense_hiddens=tuple([64]*54))
     trainer = Trainer(net_config=config)
     print('nb_params : ', sum(param.numel() for param in trainer.network.parameters() if param.requires_grad))
     logs_dict = trainer.train_loop(n_epochs=50)
@@ -436,7 +436,7 @@ def plot_comparison():
     with open('q3_default.json') as json_file:
         mlp_64_dict = json.load(json_file)
 
-    plt.title("Training mlp  53x64 vs 2x256 (layesrxfilters)")
+    plt.title("Training mlp  53x64 vs 2x256 (layers x filters)")
     plt.plot(mlp_64_dict['validation_accuracy'], label=' validation accuracy mlp (64x53)')
     plt.plot(mlp_64_dict['train_accuracy'], label=' train accuracy mlp (64x53)')
     plt.plot(w_norm_dict['1']['validation_accuracy'], label=' validation accuracy mlp (256x2)')
@@ -446,7 +446,7 @@ def plot_comparison():
     plt.legend()
     plt.show()
 
-    plt.title("Training gradient norm of mlp 53x64 vs 2x256 (layesrxfilters)")
+    plt.title("Training gradient norm of mlp 53x64 vs 2x256 (layers x filters)")
     plt.plot(mlp_64_dict['train_gradient_norm'], label='mlp (64x53)')
     plt.plot(w_norm_dict['1']['train_gradient_norm'], label='mlp (256x2)')
     plt.xlabel('epochs')
@@ -455,7 +455,7 @@ def plot_comparison():
     plt.show()
 
 # train_network(file=True)
-# plot_comparison()
+plot_comparison()
 
 
 # q4
